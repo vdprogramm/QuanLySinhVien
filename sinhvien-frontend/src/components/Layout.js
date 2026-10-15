@@ -1,60 +1,21 @@
 import React from 'react';
 import { Link, Outlet, useNavigate } from 'react-router-dom';
-
-function Layout() {
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    localStorage.removeItem('isAuthenticated');
-    navigate('/login');
-  };
-
-  return (
-    <div className="min-h-screen bg-gray-100">
-      <nav className="bg-white shadow-lg">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex justify-between h-16">
-            <div className="flex">
-              <div className="flex-shrink-0 flex items-center">
-                <h1 className="text-xl font-bold text-gray-800">Student Management System</h1>
-              </div>
-              <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-                <Link to="/dashboard" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                  Dashboard
-                </Link>
-                <Link to="/students" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                  Students
-                </Link>
-                <Link to="/classrooms" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                  Classrooms
-                </Link>
-                <Link to="/courses" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                  Courses
-                </Link>
-                <Link to="/grades" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                  Grades
-                </Link>
-                <Link to="/reports" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                  Reports
-                </Link>
-              </div>
-            </div>
-            <div className="flex items-center">
-              <button
-                onClick={handleLogout}
-                className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded text-sm"
-              >
-                Logout
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
-      <main>
-        <Outlet />
-      </main>
-    </div>
-  );
+function Layout(){
+  const account = JSON.parse(sessionStorage.getItem('account') || '{}');
+  const navigate=useNavigate();
+  const role=account.role;
+  const nav=role==='ADMIN'?
+  [['/dashboard','Tổng quan'],['/students','Sinh viên'],['/classrooms','Lớp học'],['/courses','Môn học'],['/grades','Điểm'],['/reports','Thống kê'],['/admin','Tài khoản & phân công']]:
+  role==='LECTURER'?[['/dashboard','Tổng quan'],['/lecturer','Giảng dạy & nhập điểm']]:
+  [['/dashboard','Tổng quan'],['/student','Hồ sơ & kết quả']];
+  return <div className="min-h-screen bg-gray-100">
+    <header className="bg-white shadow"><div className="mx-auto max-w-7xl p-4 flex flex-wrap gap-4 items-center justify-between">
+      <strong>Quản lý Sinh viên</strong>
+      <span>{account.displayName} ({role==='ADMIN'?'Quản trị viên':role==='LECTURER'?'Giảng viên':'Sinh viên'})</span>
+      <button className="bg-red-600 text-white rounded px-3 py-2" onClick={()=>{sessionStorage.clear();navigate('/login',{replace:true});}}>Đăng xuất</button>
+    </div></header>
+    <div className="max-w-7xl mx-auto p-4 flex flex-wrap gap-3">{nav.map(([path,label])=><Link className="px-3 py-2 rounded bg-white shadow hover:text-blue-700" key={path} to={path}>{label}</Link>)}</div>
+    <main className="max-w-7xl mx-auto px-4 pb-8"><Outlet /></main>
+  </div>;
 }
-
 export default Layout;
