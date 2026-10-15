@@ -49,9 +49,38 @@ npm start
 ```
 Đặt `REACT_APP_API_URL` trong file `.env` của Frontend khi cần trỏ tới Backend ngoài máy.
 
-### Tài khoản thử nghiệm (chỉ local)
-Để tự khởi tạo dữ liệu thử, đặt `APP_SEED_DEMO=true` và `APP_DEMO_PASSWORD` là một mật khẩu **tự chọn dài từ 8 ký tự**, rồi khởi động Backend lần đầu.
-Hệ thống sẽ tạo `admin` (ADMIN), `giangvien` (LECTURER), `sinhvien` (STUDENT) nếu chưa tồn tại; tất cả dùng mật khẩu trong `APP_DEMO_PASSWORD`. Demo tạo lớp CNTT-K13A, SV001, môn JAVA101 và tự phân công giảng viên. Khi không đặt `APP_SEED_DEMO` thì **không tự sinh tài khoản**, phù hợp môi trường production đã được khởi tạo dữ liệu.
+### Tài khoản đăng nhập demo – 3 vai trò (chỉ dùng để thử nghiệm)
+
+**Mật khẩu demo mặc định chỉ có hiệu lực khi chạy Backend với Spring profile `demo` và database chưa có các tài khoản này.** Không có tài khoản/mật khẩu mặc định tự được kích hoạt trên môi trường production.
+
+| Vai trò | Tài khoản (username) | Mật khẩu (password) | Chức năng chính |
+| --- | --- | --- | --- |
+| **Quản trị viên (ADMIN)** | `admin` | `DemoPass123!` | Quản lý sinh viên, lớp, môn, tài khoản, phân công và báo cáo |
+| **Giảng viên (LECTURER)** | `giangvien` | `DemoPass123!` | Xem môn phụ trách, danh sách đăng ký, nhập/cập nhật điểm |
+| **Sinh viên (STUDENT)** | `sinhvien` | `DemoPass123!` | Xem hồ sơ, đăng ký môn, xem kết quả học tập |
+
+**Cách bật tài khoản demo (Windows PowerShell)** – sau khi cấu hình MySQL và tạo database thử nghiệm:
+
+```powershell
+cd backend
+$env:SPRING_PROFILES_ACTIVE = "demo"
+.\mvnw.cmd spring-boot:run
+```
+
+**Linux/macOS** (từ thư mục `backend/`):
+
+```bash
+SPRING_PROFILES_ACTIVE=demo ./mvnw spring-boot:run
+```
+
+Mở React tại `http://localhost:3000`, truy cập màn hình đăng nhập và sử dụng một trong ba tài khoản ở bảng trên. Lần chạy đầu, hệ thống khởi tạo mẫu một sinh viên `SV001`, một lớp `CNTT-K13A` và môn `JAVA101` nếu bảng tương ứng đang trống, đồng thời tạo các tài khoản demo chưa tồn tại.
+
+**Các trường hợp mật khẩu có thể khác bảng:**
+- Nếu đặt biến môi trường `APP_DEMO_PASSWORD`, **cả ba tài khoản mới tạo** dùng mật khẩu được đặt qua biến đó thay vì `DemoPass123!`.
+- Nếu tên đăng nhập đã có từ trước, hệ thống **không ghi đè mật khẩu cũ**. Vì vậy bảng trên áp dụng cho tài khoản mới được khởi tạo trong database demo.
+- Nếu không bật Spring profile `demo` (và không tự bật `APP_SEED_DEMO`), hệ thống **không tự tạo** các tài khoản trên.
+
+**Cảnh báo:** mật khẩu demo được công khai để phục vụ học tập, tuyệt đối **không dùng chung cho tài khoản thật**. Không bật profile `demo` trên Render/VPS/hosting công khai; thay mật khẩu riêng và bảo mật đăng nhập trước khi triển khai.
 
 ### Cảnh báo và giới hạn
 - Frontend hiện dùng **HTTP Basic**, giữ thông tin đăng nhập đã mã hóa Base64 trong `sessionStorage` để gửi với mỗi request. Base64 **không phải mã hóa bảo mật**. **Chỉ sử dụng qua HTTPS ở môi trường công khai**, không chạy trên HTTP ngoài localhost. Nên tiếp tục nâng cấp sang access token ngắn hạn / refresh token hoặc cookie HttpOnly.
