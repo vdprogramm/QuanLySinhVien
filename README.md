@@ -28,6 +28,17 @@
 - `GET /api/student/profile`, `GET /api/student/enrollments`, `GET /api/student/grades` (STUDENT)
 - `POST /api/student/enrollments` với body `{"courseId":1}` (STUDENT)
 
+
+## Triển khai online (MySQL + Render + Vercel)
+
+Tài liệu đầy đủ: [DEPLOYMENT.md](DEPLOYMENT.md).
+
+- **Database:** Aiven for MySQL (MySQL online, không sử dụng PostgreSQL); tạo database `sinhviendb` trong Aiven Console.
+- **Backend:** Render Docker Java 21, profile `prod`, kết nối database MySQL bằng các biến môi trường `DATABASE_URL`, `DB_USERNAME`, `DB_PASSWORD`.
+- **Frontend:** Vercel, root directory `sinhvien-frontend`, cấu hình `REACT_APP_API_URL` trỏ tới URL Backend.
+- Mật khẩu Admin khi deploy phải tạo riêng qua `APP_BOOTSTRAP_ADMIN_PASSWORD`. Không sử dụng các mật khẩu demo công khai.
+- Chưa có link demo live cho đến khi các dịch vụ online được tạo và kiểm tra kết nối thực tế.
+
 ## Cài đặt
 Cần Java 21, MySQL, Node.js và npm. Tạo database `sinhviendb` hoặc sử dụng `createDatabaseIfNotExist=true` với tài khoản DB đủ quyền. Cấu hình qua biến môi trường:
 - `DATABASE_URL` URL JDBC MySQL
