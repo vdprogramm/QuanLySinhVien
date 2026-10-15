@@ -22,7 +22,7 @@ public class SecurityConfig {
                 .roles(u.getRole().name()).build())
             .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy tài khoản"));
     }
-    @Bean SecurityFilterChain filterChain(HttpSecurity http, CorsConfigurationSource corsSource) throws Exception {
+    @Bean SecurityFilterChain filterChain(HttpSecurity http, @org.springframework.beans.factory.annotation.Qualifier("corsConfigurationSource") CorsConfigurationSource corsSource) throws Exception {
         http.csrf(csrf -> csrf.disable())
           .cors(cors -> cors.configurationSource(corsSource))
           .authorizeHttpRequests(auth -> auth
