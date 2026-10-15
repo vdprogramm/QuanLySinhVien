@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8080/api';
+// URL có thể cấu hình riêng khi triển khai Frontend.
+const API_BASE_URL = (process.env.REACT_APP_API_URL || 'http://localhost:8080/api').replace(/\/$/, '');
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -37,7 +38,7 @@ export const gradeAPI = {
 };
 
 export const reportAPI = {
-  getReport: () => api.get('/reports'),
+  getReport: () => api.get('/reports/summary'),
 };
 
 export default api;

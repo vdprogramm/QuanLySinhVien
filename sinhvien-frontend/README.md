@@ -1,95 +1,29 @@
-# Student Management System - Frontend
+# Frontend – Hệ thống Quản lý Sinh viên
 
-React frontend application for the Student Management System.
+React 18 (Create React App), JavaScript, React Router v6, Axios và Tailwind CSS 3. Backend Java Spring Boot được đặt ở `../backend/` và chạy độc lập.
 
-## Features
+## Cài đặt và chạy
 
-- **Authentication**: Login system for admin users
-- **Student Management**: CRUD operations for student records
-- **Classroom Management**: Create and view classrooms
-- **Course Management**: Create and view courses
-- **Grade Management**: Assign and manage student grades
-- **Reports**: View system statistics and summaries
-- **Responsive Design**: Built with Tailwind CSS
-
-## Prerequisites
-
-- Node.js (v14 or higher)
-- npm or yarn
-- Backend API running on http://localhost:8080
-
-## Installation
-
-1. Navigate to the frontend directory:
-```bash
-cd sinhvien-frontend
-```
-
-2. Install dependencies:
 ```bash
 npm install
-```
-
-3. Start the development server:
-```bash
 npm start
 ```
+Trang web tại http://localhost:3000; Backend mặc định http://localhost:8080/api.
 
-The application will run on http://localhost:3000
+## Khi deploy FE riêng
 
-## Project Structure
+Sao chép `.env.example` thành `.env`, thay `REACT_APP_API_URL` bằng URL API backend công khai (bao gồm `/api`). Khởi động hoặc build lại Frontend sau khi thay biến môi trường.
 
-```
-src/
-├── components/
-│   ├── Login.js           # Login page
-│   ├── Dashboard.js       # Main dashboard
-│   ├── StudentManagement.js
-│   ├── ClassroomManagement.js
-│   ├── CourseManagement.js
-│   ├── GradeManagement.js
-│   ├── Report.js
-│   ├── Layout.js          # Main layout with navigation
-│   └── PrivateRoute.js    # Protected route component
-├── services/
-│   └── api.js            # API service configuration
-├── App.js                # Main app component with routing
-├── index.js              # Entry point
-└── index.css             # Global styles with Tailwind
+## Trang có trong mã nguồn
 
-```
+- `/login`: đăng nhập Admin (demo, chưa có token/session bảo mật).
+- `/dashboard`: điều hướng các phân hệ.
+- `/students`: thêm, xem, sửa, xóa sinh viên.
+- `/classrooms`: xem, thêm lớp.
+- `/courses`: xem, thêm khóa học.
+- `/grades`: xem, nhập điểm.
+- `/reports`: thống kê `GET /api/reports/summary`.
 
-## Available Scripts
+**Lưu ý:** Chỉ tài khoản admin demo; chưa có vai trò riêng cho sinh viên, giảng viên. `PrivateRoute` chỉ kiểm tra cờ localStorage nên không thay thế xác thực Backend. Không sử dụng cho dữ liệu thực khi chưa bổ sung Spring Security.
 
-- `npm start`: Run the app in development mode
-- `npm build`: Build the app for production
-- `npm test`: Run tests
-
-## API Endpoints
-
-The frontend connects to the following backend endpoints:
-
-- `POST /api/login` - Authentication
-- `GET/POST/PUT/DELETE /api/students` - Student management
-- `GET/POST /api/classes` - Classroom management
-- `GET/POST /api/courses` - Course management
-- `GET/POST /api/grades` - Grade management
-- `GET /api/reports/summary` - Report data
-
-## Technologies Used
-
-- React 18
-- React Router v6
-- Axios for API calls
-- Tailwind CSS for styling
-
-## Default Login Credentials
-
-- Username: admin
-- Password: admin123
-
-## Notes
-
-- Ensure the backend Spring Boot application is running before starting the frontend
-- The proxy configuration in package.json forwards API requests to http://localhost:8080
-- CORS is enabled on the backend for cross-origin requests
+Xem [README tổng](../README.md) để biết nghiệp vụ, bảng dữ liệu, API và các cảnh báo quan trọng.

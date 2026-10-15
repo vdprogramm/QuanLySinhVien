@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { reportAPI } from '../services/api';
 
 function Report() {
   const [reportData, setReportData] = useState({
@@ -15,7 +15,7 @@ function Report() {
 
   const fetchReportData = async () => {
     try {
-      const response = await axios.get('http://localhost:8080/api/reports/summary');
+      const response = await reportAPI.getReport();
       setReportData(response.data);
     } catch (error) {
       console.error('Error fetching report data:', error);
