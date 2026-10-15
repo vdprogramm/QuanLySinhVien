@@ -1,86 +1,61 @@
-# Hệ thống Quản lý Sinh viên (QuanLySinhVien)
+# QuanLySinhVien – Hệ thống quản lý đào tạo 3 vai trò
 
-Dự án demo quản lý sinh viên, lớp học, khóa học, điểm và thống kê bằng **React 18** + **Spring Boot 3.5.4 / Java 21** + **MySQL**.
+## Kiến trúc
+- **backend/** Java 21, Spring Boot 3.5.4, Spring Security HTTP Basic stateless, BCrypt, JPA/Hibernate, MySQL.
+- **sinhvien-frontend/** React 18, React Router, Axios, Tailwind CSS 3.
+- FE/BE độc lập. FE gọi các API qua `REACT_APP_API_URL` (mặc định http://localhost:8080/api).
 
-## Cấu trúc đã tách
+## Bài toán nghiệp vụ và phân quyền
+| Vai trò | Quyền |
+|---|---|
+| ADMIN | Quản lý sinh viên, lớp, khóa học, điểm, thống kê; tạo tài khoản có phân vai, liên kết sinh viên vào lớp, phân công giảng viên theo môn |
+| LECTURER | Chỉ xem môn được phân công; xem danh sách sinh viên đã đăng ký các môn của mình và nhập/cập nhật điểm từ 0–10 |
+| STUDENT | Xem hồ sơ của mình, danh sách môn, đăng ký môn (không trùng), xem môn đã đăng ký và điểm của riêng mình |
 
-```text
-QuanLySinhVien/
-├── backend/                # Java Spring Boot REST API (chạy riêng)
-│   ├── pom.xml
-│   ├── mvnw, mvnw.cmd, .mvn/
-│   ├── run-backend.bat, run-backend.ps1
-│   └── src/
-│       ├── main/java/com/example/sinhvienBE/
-│       │   ├── controller/
-│       │   ├── service/
-│       │   ├── repository/
-│       │   ├── model/
-│       │   └── dto/
-│       └── main/resources/
-│           ├── application.properties
-│           └── data.sql
-├── sinhvien-frontend/      # React JS + React Router + Axios + Tailwind
-│   ├── src/components/
-│   ├── src/services/api.js
-│   └── package.json
-└── README.md
-```
+**RBAC được kiểm tra ở Backend bằng Spring Security.** Các endpoint legacy `/api/students`, `/api/classes`, `/api/grades`, `/api/reports/summary` chỉ ADMIN; `GET /api/courses` cho tài khoản đã xác thực, ghi môn chỉ ADMIN. Giảng viên và sinh viên không được phép đọc dữ liệu toàn trường qua các API legacy.
 
-## Phân tích nghiệp vụ thực tế
+## Cấu trúc nghiệp vụ
+`Student` có liên kết Many-to-One `Classroom`; `Course` có `lecturer` kiểu `UserAccount`; `Enrollment` nối Student–Course, có unique constraint; `Grade` nối Student–Course, có unique constraint. Tài khoản có role và tùy chọn liên kết hồ sơ sinh viên. Chưa có thời khóa biểu, học kỳ, phân nhóm buổi học, quy trình duyệt đăng ký hoặc học phí.
 
-- **Tài khoản:** chỉ có `AdminUser` và POST `/api/login`; **chưa có** tài khoản sinh viên, giáo viên, JWT, session hoặc RBAC.
-- **Sinh viên:** danh sách, lấy một bản ghi, thêm, sửa và xóa. Các trường: `id`, `studentId`, `name`, `email`, `major`, `hobby`.
-- **Lớp học:** danh sách và thêm; bảng `Classroom` gồm `id`, `code`, `name`; **chưa có** quan hệ `Student -> Classroom`.
-- **Khóa học/môn học:** danh sách và thêm; gồm `id`, `code`, `name`, `description`.
-- **Điểm:** danh sách và tạo; `Grade` gồm `id`, `grade`, liên kết Many-to-One tới `Student` và `Course`. Chưa có sửa/xóa điểm.
-- **Báo cáo:** tổng số sinh viên, lớp, khóa học và điểm trung bình toàn hệ thống.
-- **Dashboard:** trang liên kết đến các phân hệ; không phải bảng điều khiển KPI thời gian thực.
+### API bổ sung
+- `GET /api/me`: người dùng đang đăng nhập
+- `POST /api/admin/accounts`, `GET /api/admin/accounts`: tạo, liệt kê tài khoản (ADMIN)
+- `PUT /api/admin/courses/{id}/lecturer`: gán giảng viên cho môn (ADMIN)
+- `PUT /api/admin/students/{id}/classroom`: xếp sinh viên vào lớp (ADMIN)
+- `GET /api/lecturer/courses`: môn giảng dạy (LECTURER)
+- `GET /api/lecturer/courses/{id}/enrollments`: sinh viên đăng ký môn được phân công (LECTURER)
+- `PUT /api/lecturer/courses/{id}/grades`: nhập/sửa điểm, body `{"studentId":1,"grade":8.5}` (LECTURER)
+- `GET /api/student/profile`, `GET /api/student/enrollments`, `GET /api/student/grades` (STUDENT)
+- `POST /api/student/enrollments` với body `{"courseId":1}` (STUDENT)
 
-## Các API thực tế
+## Cài đặt
+Cần Java 21, MySQL, Node.js và npm. Tạo database `sinhviendb` hoặc sử dụng `createDatabaseIfNotExist=true` với tài khoản DB đủ quyền. Cấu hình qua biến môi trường:
+- `DATABASE_URL` URL JDBC MySQL
+- `DB_USERNAME`, `DB_PASSWORD`
+- `CORS_ALLOWED_ORIGINS` domain React, mặc định http://localhost:3000
 
-| Method | Path | Mục đích |
-| --- | --- | --- |
-| POST | /api/login | Kiểm tra admin, trả `{ "success": boolean }` |
-| GET | /api/students | Danh sách sinh viên |
-| GET | /api/students/{id} | Chi tiết sinh viên |
-| POST | /api/students | Thêm sinh viên |
-| PUT | /api/students/{id} | Cập nhật sinh viên |
-| DELETE | /api/students/{id} | Xóa sinh viên |
-| GET, POST | /api/classes | Xem hoặc thêm lớp học |
-| GET, POST | /api/courses | Xem hoặc thêm khóa học |
-| GET, POST | /api/grades | Xem hoặc nhập điểm |
-| GET | /api/reports/summary | Tổng hợp thống kê |
-
-## Chạy trên máy
-
-Cần **JDK 21**, **MySQL** và **Node.js / npm**. Tạo MySQL database `sinhviendb`; đổi username và password trong `backend/src/main/resources/application.properties` theo cấu hình cục bộ.
-
-**Cảnh báo:** cấu hình hiện tại là `spring.jpa.hibernate.ddl-auto=create-drop` và `spring.sql.init.mode=always`: schema có thể bị xóa khi khởi động/tắt ứng dụng, sau đó nạp lại `data.sql`. Không dùng dữ liệu thật với cấu hình này.
-
-Terminal 1:
-```powershell
+**Chạy Backend**
+```bash
 cd backend
-.\mvnw.cmd spring-boot:run
+./mvnw spring-boot:run
 ```
-Backend: http://localhost:8080.
+Windows dùng `mvnw.cmd spring-boot:run`.
 
-Terminal 2:
-```powershell
+**Chạy Frontend**
+```bash
 cd sinhvien-frontend
 npm install
 npm start
 ```
-Frontend: http://localhost:3000.
+Đặt `REACT_APP_API_URL` trong file `.env` của Frontend khi cần trỏ tới Backend ngoài máy.
 
-Khi chạy Frontend ở máy hoặc hosting riêng, sao chép `sinhvien-frontend/.env.example` thành `.env`, cấu hình `REACT_APP_API_URL=https://your-backend.example/api`, rồi khởi động/build lại. Backend cần cấu hình CORS theo domain thực tế khi đưa lên môi trường production.
+### Tài khoản thử nghiệm (chỉ local)
+Để tự khởi tạo dữ liệu thử, đặt `APP_SEED_DEMO=true` và `APP_DEMO_PASSWORD` là một mật khẩu **tự chọn dài từ 8 ký tự**, rồi khởi động Backend lần đầu.
+Hệ thống sẽ tạo `admin` (ADMIN), `giangvien` (LECTURER), `sinhvien` (STUDENT) nếu chưa tồn tại; tất cả dùng mật khẩu trong `APP_DEMO_PASSWORD`. Demo tạo lớp CNTT-K13A, SV001, môn JAVA101 và tự phân công giảng viên. Khi không đặt `APP_SEED_DEMO` thì **không tự sinh tài khoản**, phù hợp môi trường production đã được khởi tạo dữ liệu.
 
-## Dữ liệu demo, hạn chế và bảo mật
-
-`data.sql` tạo sẵn **3 sinh viên, 2 lớp, 3 khóa học, 4 bản ghi điểm** và **Admin demo**. Tài khoản thử ở local: `admin` / `admin123`. **Không sử dụng mật khẩu này ngoài môi trường demo.**
-
-**Chưa an toàn để công khai:** mật khẩu admin đang lưu plaintext, AuthService so sánh trực tiếp, Frontend lưu cờ `isAuthenticated` trong `localStorage`, các API quản lý không được bảo vệ bằng Spring Security. Cần bổ sung xác thực server, hash mật khẩu BCrypt, phân quyền, validation, xử lý lỗi, database migration và cấu hình môi trường trước khi dùng thật.
-
-`node_modules/` hiện đã bị commit theo lịch sử repository; file `.gitignore` mới chỉ ngăn theo dõi file mới. Muốn bỏ khỏi Git index mà giữ trên máy: `git rm -r --cached sinhvien-frontend/node_modules` rồi commit riêng.
-
-Lưu ý: `ReportService` và `ReportController` có logic thống kê trùng lặp; Frontend nay gọi báo cáo qua cùng API service và endpoint đúng `/api/reports/summary`. Việc tách thư mục không đồng nghĩa đã kiểm thử chức năng chạy thực tế.
+### Cảnh báo và giới hạn
+- Frontend hiện dùng **HTTP Basic**, giữ thông tin đăng nhập đã mã hóa Base64 trong `sessionStorage` để gửi với mỗi request. Base64 **không phải mã hóa bảo mật**. **Chỉ sử dụng qua HTTPS ở môi trường công khai**, không chạy trên HTTP ngoài localhost. Nên tiếp tục nâng cấp sang access token ngắn hạn / refresh token hoặc cookie HttpOnly.
+- Database dùng `ddl-auto=update` cho phát triển; triển khai thực tế cần migration versioned Flyway/Liquibase. Nếu CSDL đang có điểm trùng theo cặp sinh viên–môn, unique constraint cần xử lý dữ liệu trước khi nâng cấp.
+- Dữ liệu gốc `data.sql` không tự chạy (`spring.sql.init.mode=never`). `AdminUser` cũ không còn được dùng để đăng nhập; cần quy trình migration thủ công, không tự biến mật khẩu plaintext cũ thành tài khoản mới.
+- Mật khẩu mới hash BCrypt. Không đẩy mật khẩu production lên Git.
+- Chưa có integration test chạy qua MySQL; cần kiểm tra ứng dụng và regression trước khi merge và deploy.
